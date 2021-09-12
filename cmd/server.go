@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/spf13/cobra"
 )
@@ -89,16 +90,20 @@ func server() error {
 }
 
 type BRedis struct {
-	keys map[string]string
+	keys  map[string]string
+	mutex *sync.RWMutex
 }
 
 func NewBRedis() *BRedis {
 	return &BRedis{
-		keys: make(map[string]string),
+		keys:  make(map[string]string),
+		mutex: &sync.RWMutex{},
 	}
 }
 
 func (r *BRedis) Get(key string) (string, error) {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
 	if v, ok := r.keys[key]; ok {
 		return v, nil
 	}
@@ -106,6 +111,8 @@ func (r *BRedis) Get(key string) (string, error) {
 }
 
 func (r *BRedis) Set(key string, val string) error {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
 	if v, ok := r.keys[key]; ok {
 		if v != val {
 			r.keys[key] = val
