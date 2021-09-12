@@ -1,0 +1,6 @@
+URL=http://127.0.0.1:8080
+$(URL)/set/bredis/70data
+$(URL)/set/bredis/lhx692135353
+$(URL)/set/bredis/machinly
+$(URL)/set/bredis/teamNoble
+$(URL)/get/bredis
