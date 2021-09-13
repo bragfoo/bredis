@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"github.com/bragfoo/bredis/pkg/bredis"
 	"github.com/spf13/cobra"
@@ -60,7 +61,7 @@ func server() error {
 					if len(paths) == 2 {
 						result, err := bRedis.Get(paths[1])
 						if err != nil {
-							if err.Error() == "not found" {
+							if errors.Is(err, bredis.ErrorNotFound) {
 								reply.WriteHeader(404)
 								reply.Write([]byte(err.Error()))
 							} else {

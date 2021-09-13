@@ -1,7 +1,6 @@
 package bredis
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -80,7 +79,7 @@ func (r *singleCoreBRedis) get(key string) (string, error) {
 	if v, ok := r.keys[key]; ok {
 		return v, nil
 	}
-	return "", fmt.Errorf("not found")
+	return "", ErrorNotFound
 }
 
 func (r *singleCoreBRedis) set(key string, val string) error {

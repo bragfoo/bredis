@@ -1,7 +1,6 @@
 package bredis
 
 import (
-	"fmt"
 	"sync"
 )
 
@@ -19,7 +18,7 @@ func (r *syncMapBRedis) Get(key string) (string, error) {
 	if v, ok := r.keys.Load(key); ok {
 		return v.(string), nil
 	}
-	return "", fmt.Errorf("not found")
+	return "", ErrorNotFound
 }
 
 func (r *syncMapBRedis) Set(key string, val string) error {

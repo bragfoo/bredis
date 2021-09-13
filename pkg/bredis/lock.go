@@ -1,7 +1,6 @@
 package bredis
 
 import (
-	"fmt"
 	"sync"
 )
 
@@ -23,7 +22,7 @@ func (r *lockBRedis) Get(key string) (string, error) {
 	if v, ok := r.keys[key]; ok {
 		return v, nil
 	}
-	return "", fmt.Errorf("not found")
+	return "", ErrorNotFound
 }
 
 func (r *lockBRedis) Set(key string, val string) error {
