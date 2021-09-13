@@ -9,26 +9,45 @@ import (
 	"strings"
 )
 
-func init() {
-	rootCmd.AddCommand(tryCmd)
-}
+var (
+	impl string
+	port int
 
-var tryCmd = &cobra.Command{
-	Use:   "server",
-	Short: "run bredis server",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if err := server(); err != nil {
-			return err
-		}
-		return nil
-	},
+	serverCmd = &cobra.Command{
+		Use:   "server",
+		Short: "run bredis server",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := server(); err != nil {
+				return err
+			}
+			return nil
+		},
+	}
+)
+
+func init() {
+	rootCmd.AddCommand(serverCmd)
+	serverCmd.PersistentFlags().StringVar(&impl, "impl", "lock", `support three impl ["lock", "syncmap", "singlecore"]`)
+	serverCmd.PersistentFlags().IntVar(&port, "port", 7379, `support three impl ["lock", "syncmap", "singlecore"]`)
 }
 
 func server() error {
 	s := http.Server{
-		Addr: ":8080",
+		Addr: ":" + string(port),
 	}
-	bRedis := bredis.NewLockBRedis()
+
+	var bRedis bredis.BRedis
+	switch impl {
+	case "lock":
+		bRedis = bredis.NewLockBRedis()
+	case "syncmap":
+		bRedis = bredis.NewSyncMapBRedis()
+	case "singlecore":
+		bRedis = bredis.NewSingleCoreBRedis()
+	default:
+		bRedis = bredis.NewLockBRedis()
+	}
+
 	http.HandleFunc(
 		"/",
 		func(reply http.ResponseWriter, resp *http.Request) {
