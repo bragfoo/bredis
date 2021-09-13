@@ -2,12 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/bragfoo/bredis/pkg/bredis"
+	"github.com/spf13/cobra"
 	"log"
 	"net/http"
 	"strings"
-	"sync"
-
-	"github.com/spf13/cobra"
 )
 
 func init() {
@@ -29,7 +28,7 @@ func server() error {
 	s := http.Server{
 		Addr: ":8080",
 	}
-	bRedis := NewBRedis()
+	bRedis := bredis.NewLockBRedis()
 	http.HandleFunc(
 		"/",
 		func(reply http.ResponseWriter, resp *http.Request) {
@@ -86,39 +85,5 @@ func server() error {
 	)
 
 	log.Fatal(s.ListenAndServe())
-	return nil
-}
-
-type BRedis struct {
-	keys  map[string]string
-	mutex *sync.RWMutex
-}
-
-func NewBRedis() *BRedis {
-	return &BRedis{
-		keys:  make(map[string]string),
-		mutex: &sync.RWMutex{},
-	}
-}
-
-func (r *BRedis) Get(key string) (string, error) {
-	r.mutex.RLock()
-	defer r.mutex.RUnlock()
-	if v, ok := r.keys[key]; ok {
-		return v, nil
-	}
-	return "", fmt.Errorf("not found")
-}
-
-func (r *BRedis) Set(key string, val string) error {
-	r.mutex.Lock()
-	defer r.mutex.Unlock()
-	if v, ok := r.keys[key]; ok {
-		if v != val {
-			r.keys[key] = val
-		}
-	} else {
-		r.keys[key] = val
-	}
 	return nil
 }
