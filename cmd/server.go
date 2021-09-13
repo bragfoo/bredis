@@ -28,12 +28,12 @@ var (
 func init() {
 	rootCmd.AddCommand(serverCmd)
 	serverCmd.PersistentFlags().StringVar(&impl, "impl", "lock", `support three impl ["lock", "syncmap", "singlecore"]`)
-	serverCmd.PersistentFlags().IntVar(&port, "port", 7379, `support three impl ["lock", "syncmap", "singlecore"]`)
+	serverCmd.PersistentFlags().IntVar(&port, "port", 7379, `listen port`)
 }
 
 func server() error {
 	s := http.Server{
-		Addr: ":" + string(port),
+		Addr: fmt.Sprintf(":%d", port),
 	}
 
 	var bRedis bredis.BRedis
