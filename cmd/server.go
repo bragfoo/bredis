@@ -90,35 +90,29 @@ func server() error {
 }
 
 type BRedis struct {
-	keys  map[string]string
-	mutex *sync.RWMutex
+	keys *sync.Map
 }
 
 func NewBRedis() *BRedis {
 	return &BRedis{
-		keys:  make(map[string]string),
-		mutex: &sync.RWMutex{},
+		keys: &sync.Map{},
 	}
 }
 
 func (r *BRedis) Get(key string) (string, error) {
-	r.mutex.RLock()
-	defer r.mutex.RUnlock()
-	if v, ok := r.keys[key]; ok {
-		return v, nil
+	if v, ok := r.keys.Load(key); ok {
+		return v.(string), nil
 	}
 	return "", fmt.Errorf("not found")
 }
 
 func (r *BRedis) Set(key string, val string) error {
-	r.mutex.Lock()
-	defer r.mutex.Unlock()
-	if v, ok := r.keys[key]; ok {
-		if v != val {
-			r.keys[key] = val
+	if v, ok := r.keys.Load(key); ok {
+		if v.(string) != val {
+			r.keys.Store(key, val)
 		}
 	} else {
-		r.keys[key] = val
+		r.keys.Store(key, val)
 	}
 	return nil
 }
