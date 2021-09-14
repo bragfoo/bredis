@@ -43,6 +43,9 @@ func (r *singleCoreBRedis) do() {
 			case "set":
 				r.set(c.key, c.params[0])
 				r.out <- nil
+			case "delete":
+				r.delete(c.key)
+				r.out <- nil
 			}
 		case <-r.done:
 			return
@@ -81,6 +84,21 @@ func (r *singleCoreBRedis) Set(key string, val string) error {
 	return nil
 }
 
+func (r *singleCoreBRedis) Delete(key string) error {
+	if key == "" {
+		return ErrEmptyKey
+	}
+	r.in <- &inType{
+		cmd: "delete",
+		key: key,
+	}
+	o := <-r.out
+	if o != nil {
+		return o.err
+	}
+	return nil
+}
+
 func (r *singleCoreBRedis) get(key string) (string, error) {
 	if v, ok := r.keys[key]; ok {
 		return v, nil
@@ -97,4 +115,8 @@ func (r *singleCoreBRedis) set(key string, val string) {
 	} else {
 		r.keys[key] = val
 	}
+}
+
+func (r *singleCoreBRedis) delete(key string) {
+	delete(r.keys, key)
 }

@@ -14,6 +14,11 @@ func Test_syncMapBRedis_Set(t *testing.T) {
 	BRedisSetTest(t, r)
 }
 
+func Test_syncMapBRedis_Delete(t *testing.T) {
+	r := NewSyncMapBRedis()
+	BRedisDeleteTest(t, r)
+}
+
 func BenchmarkSyncMapBRedis_Get(b *testing.B) {
 	r := NewSyncMapBRedis()
 	GetBenchmark(b, r)

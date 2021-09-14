@@ -14,6 +14,11 @@ func Test_singleCoreBRedis_Set(t *testing.T) {
 	BRedisSetTest(t, r)
 }
 
+func Test_singleCoreBRedis_Delete(t *testing.T) {
+	r := NewSingleCoreBRedis()
+	BRedisDeleteTest(t, r)
+}
+
 func BenchmarkSingleCoreBRedis_Get(b *testing.B) {
 	r := NewSingleCoreBRedis()
 	GetBenchmark(b, r)

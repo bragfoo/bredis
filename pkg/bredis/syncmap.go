@@ -37,3 +37,11 @@ func (r *syncMapBRedis) Set(key string, val string) error {
 	}
 	return nil
 }
+
+func (r *syncMapBRedis) Delete(key string) error {
+	if key == "" {
+		return ErrEmptyKey
+	}
+	r.keys.Delete(key)
+	return nil
+}

@@ -123,6 +123,52 @@ func BRedisSetTest(t *testing.T, r BRedis) {
 	}
 }
 
+func BRedisDeleteTest(t *testing.T, r BRedis) {
+	if err := PrePareDataSet_Sample(r); err != nil {
+		t.Errorf("set data error: %s", err)
+	}
+
+	tests := []struct {
+		name string
+		key  string
+		err  error
+	}{
+		{
+			name: "delete_empty_key",
+			key:  "",
+			err:  ErrEmptyKey,
+		},
+		{
+			name: "delete_empty_val",
+			key:  "key",
+			err:  nil,
+		},
+		{
+			name: "delete_new_key",
+			key:  "new_a",
+			err:  nil,
+		},
+		{
+			name: "delete_exist_key",
+			key:  "b",
+			err:  nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := r.Delete(tt.key); !errors.Is(err, tt.err) {
+				t.Errorf("Delete() error = %v, wantErr %v", err, tt.err)
+			}
+			if tt.err == nil {
+				_, err := r.Get(tt.key)
+				if errors.Is(err, ErrEmptyKey) {
+					t.Errorf("Delete Success But Get() error = %v", err)
+				}
+			}
+		})
+	}
+}
+
 func PrePareDataSet_Sample(r BRedis) error {
 	dataset := map[string]string{
 		"a": "redisA",

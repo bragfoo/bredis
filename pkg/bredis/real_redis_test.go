@@ -14,6 +14,11 @@ func Test_readRedisBRedis_Set(t *testing.T) {
 	BRedisSetTest(t, r)
 }
 
+func Test_readRedisBRedis_Delete(t *testing.T) {
+	r := NewRealRedisBRedis()
+	BRedisDeleteTest(t, r)
+}
+
 func BenchmarkRealRedisBRedis_Get(b *testing.B) {
 	r := NewRealRedisBRedis()
 	GetBenchmark(b, r)

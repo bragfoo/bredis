@@ -90,6 +90,20 @@ func server() error {
 						reply.WriteHeader(400)
 						reply.Write([]byte("invalid params"))
 					}
+				case "delete":
+					if len(paths) == 2 {
+						err := bRedis.Delete(paths[1])
+						if err != nil {
+							reply.WriteHeader(500)
+							reply.Write([]byte(err.Error()))
+						} else {
+							reply.WriteHeader(200)
+							reply.Write([]byte("ok\n"))
+						}
+					} else {
+						reply.WriteHeader(400)
+						reply.Write([]byte("invalid params"))
+					}
 				}
 			}
 		},

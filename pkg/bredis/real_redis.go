@@ -39,6 +39,18 @@ func (r *realRedisBRedis) Set(key string, val string) error {
 	return nil
 }
 
+func (r *realRedisBRedis) Delete(key string) error {
+	if key == "" {
+		return ErrEmptyKey
+	}
+	ctx := context.Background()
+	err := r.rdb.Del(ctx, key).Err()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func NewRealRedisBRedis() BRedis {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     "localhost:6379",

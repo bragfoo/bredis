@@ -43,3 +43,13 @@ func (r *lockBRedis) Set(key string, val string) error {
 	}
 	return nil
 }
+
+func (r *lockBRedis) Delete(key string) error {
+	if key == "" {
+		return ErrEmptyKey
+	}
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+	delete(r.keys, key)
+	return nil
+}

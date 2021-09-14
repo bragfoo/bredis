@@ -14,6 +14,11 @@ func Test_lockBRedis_Set(t *testing.T) {
 	BRedisSetTest(t, r)
 }
 
+func Test_lockBRedis_Delete(t *testing.T) {
+	r := NewLockBRedis()
+	BRedisDeleteTest(t, r)
+}
+
 func BenchmarkLockBRedis_Get(b *testing.B) {
 	r := NewLockBRedis()
 	GetBenchmark(b, r)
