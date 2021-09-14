@@ -17,15 +17,21 @@ func NewLockBRedis() BRedis {
 }
 
 func (r *lockBRedis) Get(key string) (string, error) {
+	if key == "" {
+		return "", ErrEmptyKey
+	}
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 	if v, ok := r.keys[key]; ok {
 		return v, nil
 	}
-	return "", ErrorNotFound
+	return "", ErrNotFound
 }
 
 func (r *lockBRedis) Set(key string, val string) error {
+	if key == "" {
+		return ErrEmptyKey
+	}
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 	if v, ok := r.keys[key]; ok {

@@ -15,13 +15,19 @@ func NewSyncMapBRedis() BRedis {
 }
 
 func (r *syncMapBRedis) Get(key string) (string, error) {
+	if key == "" {
+		return "", ErrEmptyKey
+	}
 	if v, ok := r.keys.Load(key); ok {
 		return v.(string), nil
 	}
-	return "", ErrorNotFound
+	return "", ErrNotFound
 }
 
 func (r *syncMapBRedis) Set(key string, val string) error {
+	if key == "" {
+		return ErrEmptyKey
+	}
 	if v, ok := r.keys.Load(key); ok {
 		if v.(string) != val {
 			r.keys.Store(key, val)

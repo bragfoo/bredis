@@ -61,7 +61,7 @@ func server() error {
 					if len(paths) == 2 {
 						result, err := bRedis.Get(paths[1])
 						if err != nil {
-							if errors.Is(err, bredis.ErrorNotFound) {
+							if errors.Is(err, bredis.ErrNotFound) {
 								reply.WriteHeader(404)
 								reply.Write([]byte(err.Error()))
 							} else {
