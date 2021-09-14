@@ -2,11 +2,12 @@ package bredis
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 )
 
 func BRedisGetTest(t *testing.T, r BRedis) {
-	if err := r.Set("b", "redis"); err != nil {
+	if err := PrePareDataSet_Sample(r); err != nil {
 		t.Errorf("set data error: %s", err)
 	}
 
@@ -17,22 +18,22 @@ func BRedisGetTest(t *testing.T, r BRedis) {
 		err  error
 	}{
 		{
-			name: "get empty key",
+			name: "get_empty_key",
 			key:  "",
 			want: "",
-			err:  ErrorEmptyKey,
+			err:  ErrEmptyKey,
 		},
 		{
-			name: "get no exist key",
+			name: "get_exist_key",
+			key:  "a",
+			want: "redisA",
+			err:  nil,
+		},
+		{
+			name: "get_no_exist_key",
 			key:  "no_exist",
 			want: "",
-			err:  ErrorNotFound,
-		},
-		{
-			name: "get exist key",
-			key:  "b",
-			want: "redis",
-			err:  nil,
+			err:  ErrNotFound,
 		},
 	}
 	for _, tt := range tests {
@@ -50,7 +51,7 @@ func BRedisGetTest(t *testing.T, r BRedis) {
 }
 
 func BRedisSetTest(t *testing.T, r BRedis) {
-	if err := r.Set("b", "redis"); err != nil {
+	if err := PrePareDataSet_Sample(r); err != nil {
 		t.Errorf("set data error: %s", err)
 	}
 
@@ -64,23 +65,23 @@ func BRedisSetTest(t *testing.T, r BRedis) {
 		err  error
 	}{
 		{
-			name: "set empty key and val",
+			name: "set_empty_key_and_val",
 			args: args{
 				key: "",
 				val: "",
 			},
-			err: ErrorEmptyKey,
+			err: ErrEmptyKey,
 		},
 		{
-			name: "set empty key",
+			name: "set_empty_key",
 			args: args{
 				key: "",
 				val: "value",
 			},
-			err: ErrorEmptyKey,
+			err: ErrEmptyKey,
 		},
 		{
-			name: "set empty val",
+			name: "set_empty_val",
 			args: args{
 				key: "key",
 				val: "",
@@ -88,7 +89,15 @@ func BRedisSetTest(t *testing.T, r BRedis) {
 			err: nil,
 		},
 		{
-			name: "set exist key",
+			name: "set_new_key",
+			args: args{
+				key: "new_a",
+				val: "newA",
+			},
+			err: nil,
+		},
+		{
+			name: "set_exist_key",
 			args: args{
 				key: "b",
 				val: "new val",
@@ -98,16 +107,70 @@ func BRedisSetTest(t *testing.T, r BRedis) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := r.Set(tt.args.key, tt.args.val); errors.Is(err, tt.err) {
+			if err := r.Set(tt.args.key, tt.args.val); !errors.Is(err, tt.err) {
 				t.Errorf("Set() error = %v, wantErr %v", err, tt.err)
 			}
-			val, err := r.Get(tt.args.key)
-			if err != nil {
-				t.Errorf("Set Success But Get() error = %v", err)
-			}
-			if val != tt.args.val {
-				t.Errorf("Set Success But Get wrong val, val = %s, wantVal = %s", val, tt.args.val)
+			if tt.err == nil {
+				val, err := r.Get(tt.args.key)
+				if err != nil {
+					t.Errorf("Set Success But Get() error = %v", err)
+				}
+				if val != tt.args.val {
+					t.Errorf("Set Success But Get wrong val, val = %s, wantVal = %s", val, tt.args.val)
+				}
 			}
 		})
+	}
+}
+
+func PrePareDataSet_Sample(r BRedis) error {
+	dataset := map[string]string{
+		"a": "redisA",
+		"b": "redisB",
+	}
+	for k, v := range dataset {
+		err := r.Set(k, v)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func PrepareNKDataSet(r BRedis, size int) error {
+	for i := 0; i < size*1000; i++ {
+		key := fmt.Sprintf("key:%d", i)
+		val := fmt.Sprintf("val:%d", i)
+		err := r.Set(key, val)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func GetBenchmark(b *testing.B, r BRedis) {
+	b.Log(b.N)
+	err := PrepareNKDataSet(r, 10)
+	if err != nil {
+		b.Fatal("prepare dataset error", err)
+	}
+	// run the Fib function b.N times
+	for n := 0; n < b.N; n++ {
+		b.StartTimer()
+		r.Get(fmt.Sprintf("redis:%d", n))
+		b.StopTimer()
+	}
+}
+
+func SetBenchmark(b *testing.B, r BRedis) {
+	// run the Fib function b.N times
+	b.Log(b.N)
+	for n := 0; n < b.N; n++ {
+		key := fmt.Sprintf("key:%d", n)
+		val := fmt.Sprintf("val:%d", n)
+		b.StartTimer()
+		r.Set(key, val)
+		b.StopTimer()
 	}
 }
