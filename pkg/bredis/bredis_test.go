@@ -2,7 +2,7 @@ package bredis
 
 import (
 	"errors"
-	"fmt"
+	"strconv"
 	"testing"
 )
 
@@ -139,8 +139,8 @@ func PrePareDataSet_Sample(r BRedis) error {
 
 func PrepareNKDataSet(r BRedis, size int) error {
 	for i := 0; i < size*1000; i++ {
-		key := fmt.Sprintf("key:%d", i)
-		val := fmt.Sprintf("val:%d", i)
+		key := strconv.Itoa(i)
+		val := strconv.Itoa(i)
 		err := r.Set(key, val)
 		if err != nil {
 			return err
@@ -150,27 +150,23 @@ func PrepareNKDataSet(r BRedis, size int) error {
 }
 
 func GetBenchmark(b *testing.B, r BRedis) {
-	b.Log(b.N)
 	err := PrepareNKDataSet(r, 10)
 	if err != nil {
 		b.Fatal("prepare dataset error", err)
 	}
+	b.StartTimer()
 	// run the Fib function b.N times
 	for n := 0; n < b.N; n++ {
-		b.StartTimer()
-		r.Get(fmt.Sprintf("redis:%d", n))
-		b.StopTimer()
+		r.Get(strconv.Itoa(n))
 	}
+	b.StopTimer()
 }
 
 func SetBenchmark(b *testing.B, r BRedis) {
 	// run the Fib function b.N times
-	b.Log(b.N)
 	for n := 0; n < b.N; n++ {
-		key := fmt.Sprintf("key:%d", n)
-		val := fmt.Sprintf("val:%d", n)
-		b.StartTimer()
+		key := strconv.Itoa(n)
+		val := strconv.Itoa(n)
 		r.Set(key, val)
-		b.StopTimer()
 	}
 }

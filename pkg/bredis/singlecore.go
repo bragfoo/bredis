@@ -1,13 +1,9 @@
 package bredis
 
-import (
-	"time"
-)
-
 type singleCoreBRedis struct {
 	keys map[string]string
-	in   chan inType
-	out  chan outType
+	in   chan *inType
+	out  chan *outType
 	done chan int
 }
 
@@ -25,8 +21,8 @@ type outType struct {
 func NewSingleCoreBRedis() BRedis {
 	br := &singleCoreBRedis{
 		keys: make(map[string]string),
-		in:   make(chan inType),
-		out:  make(chan outType),
+		in:   make(chan *inType),
+		out:  make(chan *outType),
 	}
 	go br.do()
 	return br
@@ -43,13 +39,10 @@ func (r *singleCoreBRedis) do() {
 			switch c.cmd {
 			case "get":
 				result, err := r.get(c.key)
-				o := outType{result: []string{result}, err: err}
-				r.out <- o
+				r.out <- &outType{result: []string{result}, err: err}
 			case "set":
 				r.set(c.key, c.params[0])
-				r.out <- outType{}
-			default:
-				time.Sleep(10 * time.Microsecond)
+				r.out <- nil
 			}
 		case <-r.done:
 			return
@@ -61,11 +54,10 @@ func (r *singleCoreBRedis) Get(key string) (string, error) {
 	if key == "" {
 		return "", ErrEmptyKey
 	}
-	i := inType{
+	r.in <- &inType{
 		cmd: "get",
 		key: key,
 	}
-	r.in <- i
 	o := <-r.out
 	if o.err != nil {
 		return "", o.err
@@ -77,14 +69,16 @@ func (r *singleCoreBRedis) Set(key string, val string) error {
 	if key == "" {
 		return ErrEmptyKey
 	}
-	i := inType{
+	r.in <- &inType{
 		cmd:    "set",
 		key:    key,
 		params: []string{val},
 	}
-	r.in <- i
 	o := <-r.out
-	return o.err
+	if o != nil {
+		return o.err
+	}
+	return nil
 }
 
 func (r *singleCoreBRedis) get(key string) (string, error) {
