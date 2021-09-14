@@ -28,3 +28,8 @@ func BenchmarkSingleCoreBRedis_Set(b *testing.B) {
 	r := NewSingleCoreBRedis()
 	SetBenchmark(b, r)
 }
+
+func BenchmarkSingleCoreBRedis_Parallel(b *testing.B) {
+	r := NewSingleCoreBRedis()
+	ParallelBenchmark(b, r)
+}

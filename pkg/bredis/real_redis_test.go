@@ -28,3 +28,8 @@ func BenchmarkRealRedisBRedis_Set(b *testing.B) {
 	r := NewRealRedisBRedis()
 	SetBenchmark(b, r)
 }
+
+func BenchmarkRealRedisBRedis_Parallel(b *testing.B) {
+	r := NewRealRedisBRedis()
+	ParallelBenchmark(b, r)
+}

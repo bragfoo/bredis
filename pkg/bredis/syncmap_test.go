@@ -28,3 +28,8 @@ func BenchmarkSyncMapBRedis_Set(b *testing.B) {
 	r := NewSyncMapBRedis()
 	SetBenchmark(b, r)
 }
+
+func BenchmarkSyncMapBRedis_Parallel(b *testing.B) {
+	r := NewSyncMapBRedis()
+	ParallelBenchmark(b, r)
+}

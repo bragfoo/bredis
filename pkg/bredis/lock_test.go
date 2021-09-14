@@ -28,3 +28,8 @@ func BenchmarkLockBRedis_Set(b *testing.B) {
 	r := NewLockBRedis()
 	SetBenchmark(b, r)
 }
+
+func BenchmarkLockBRedis_Parallel(b *testing.B) {
+	r := NewLockBRedis()
+	ParallelBenchmark(b, r)
+}

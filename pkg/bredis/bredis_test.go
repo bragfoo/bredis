@@ -7,7 +7,7 @@ import (
 )
 
 func BRedisGetTest(t *testing.T, r BRedis) {
-	if err := PrePareDataSet_Sample(r); err != nil {
+	if err := PrepareSampleDataSet(r); err != nil {
 		t.Errorf("set data error: %s", err)
 	}
 
@@ -51,7 +51,7 @@ func BRedisGetTest(t *testing.T, r BRedis) {
 }
 
 func BRedisSetTest(t *testing.T, r BRedis) {
-	if err := PrePareDataSet_Sample(r); err != nil {
+	if err := PrepareSampleDataSet(r); err != nil {
 		t.Errorf("set data error: %s", err)
 	}
 
@@ -124,7 +124,7 @@ func BRedisSetTest(t *testing.T, r BRedis) {
 }
 
 func BRedisDeleteTest(t *testing.T, r BRedis) {
-	if err := PrePareDataSet_Sample(r); err != nil {
+	if err := PrepareSampleDataSet(r); err != nil {
 		t.Errorf("set data error: %s", err)
 	}
 
@@ -169,7 +169,7 @@ func BRedisDeleteTest(t *testing.T, r BRedis) {
 	}
 }
 
-func PrePareDataSet_Sample(r BRedis) error {
+func PrepareSampleDataSet(r BRedis) error {
 	dataset := map[string]string{
 		"a": "redisA",
 		"b": "redisB",
@@ -215,4 +215,20 @@ func SetBenchmark(b *testing.B, r BRedis) {
 		val := strconv.Itoa(n)
 		r.Set(key, val)
 	}
+}
+
+func ParallelBenchmark(b *testing.B, r BRedis) {
+	// run the Fib function b.N times
+	b.SetParallelism(2)
+	b.RunParallel(func(pb *testing.PB) {
+		n := 0
+		for pb.Next() {
+			key := strconv.Itoa(n)
+			val := strconv.Itoa(n)
+			r.Set(key, val)
+			r.Get(key)
+			r.Delete(key)
+			n++
+		}
+	})
 }
