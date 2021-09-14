@@ -8,6 +8,7 @@ type singleCoreBRedis struct {
 	keys map[string]string
 	in   chan inType
 	out  chan outType
+	done chan int
 }
 
 type inType struct {
@@ -31,6 +32,10 @@ func NewSingleCoreBRedis() BRedis {
 	return br
 }
 
+func (r *singleCoreBRedis) Close() {
+	r.done <- 0
+}
+
 func (r *singleCoreBRedis) do() {
 	for {
 		select {
@@ -41,20 +46,24 @@ func (r *singleCoreBRedis) do() {
 				o := outType{result: []string{result}, err: err}
 				r.out <- o
 			case "set":
-				err := r.set(c.key, c.params[0])
-				o := outType{result: []string{}, err: err}
-				r.out <- o
+				r.set(c.key, c.params[0])
+				r.out <- outType{}
 			default:
 				time.Sleep(10 * time.Microsecond)
 			}
+		case <-r.done:
+			return
 		}
 	}
 }
 
 func (r *singleCoreBRedis) Get(key string) (string, error) {
+	if key == "" {
+		return "", ErrEmptyKey
+	}
 	i := inType{
 		cmd: "get",
-		key: "key",
+		key: key,
 	}
 	r.in <- i
 	o := <-r.out
@@ -65,9 +74,12 @@ func (r *singleCoreBRedis) Get(key string) (string, error) {
 }
 
 func (r *singleCoreBRedis) Set(key string, val string) error {
+	if key == "" {
+		return ErrEmptyKey
+	}
 	i := inType{
 		cmd:    "set",
-		key:    "key",
+		key:    key,
 		params: []string{val},
 	}
 	r.in <- i
@@ -79,10 +91,11 @@ func (r *singleCoreBRedis) get(key string) (string, error) {
 	if v, ok := r.keys[key]; ok {
 		return v, nil
 	}
-	return "", ErrorNotFound
+	return "",
+		ErrNotFound
 }
 
-func (r *singleCoreBRedis) set(key string, val string) error {
+func (r *singleCoreBRedis) set(key string, val string) {
 	if v, ok := r.keys[key]; ok {
 		if v != val {
 			r.keys[key] = val
@@ -90,5 +103,4 @@ func (r *singleCoreBRedis) set(key string, val string) error {
 	} else {
 		r.keys[key] = val
 	}
-	return nil
 }
